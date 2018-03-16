@@ -4,32 +4,39 @@ import time
 
 mutex = Lock()
 produced = []
+maxSize = 2
+size = 0
 
 class threadProd(Thread):
 	def run(self):
 		while True:
-			mutex.acquire()
 			num = random.randint(1, 10)
 			global produced
-			produced.append(num)
-			print "produces", num
-			time.sleep(1)
+			global size
+			if size != maxSize:
+				mutex.acquire()
+				produced.append(num)
+				size =+ 1
+				mutex.release()
+				print "produces", num
+				time.sleep(0.5)
 			print produced
-			mutex.release()
 
 class threadCons(Thread):
 	def run(self):
 		while True:
-			mutex.acquire()
 			global produced
+			global size
 			if not  produced:
-				mutex.wait()
+				size =- 1
+				pass
 				time.sleep(random.random())
 			else:
+				mutex.acquire()
 				aux = produced.pop()
+				mutex.release()
 				print "removed", aux 
-				time.sleep(0.5)
-			mutex.release()
+				time.sleep(1)
 
 threadProd().start()
 threadCons().start()
